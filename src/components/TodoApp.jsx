@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import FilterBar from "./FilterBar";
 import TodoForm from "./TodoForm";
 import TodoItem from "./TodoItem";
@@ -24,6 +24,7 @@ export default function TodoApp() {
   const [todos, setTodos] = useState([]);
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [dbError, setDbError] = useState("");
@@ -33,7 +34,7 @@ export default function TodoApp() {
     setDbError("");
 
     const params = new URLSearchParams({ status: "all" });
-    if (search.trim()) params.set("q", search.trim());
+    if (deferredSearch.trim()) params.set("q", deferredSearch.trim());
 
     try {
       const data = await request(`/api/todos?${params}`);
@@ -44,21 +45,23 @@ export default function TodoApp() {
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [deferredSearch]);
 
   useEffect(() => {
-    const timer = setTimeout(loadTodos, search ? 250 : 0);
+    const timer = setTimeout(loadTodos, deferredSearch ? 250 : 0);
     return () => clearTimeout(timer);
-  }, [loadTodos, search]);
+  }, [loadTodos, deferredSearch]);
 
-  const counts = useMemo(
-    () => ({
-      all: todos.length,
-      active: todos.filter((t) => !t.completed).length,
-      completed: todos.filter((t) => t.completed).length,
-    }),
-    [todos],
-  );
+  const counts = useMemo(() => {
+    return todos.reduce(
+      (acc, todo) => {
+        if (todo.completed) acc.completed += 1;
+        else acc.active += 1;
+        return acc;
+      },
+      { all: todos.length, active: 0, completed: 0 },
+    );
+  }, [todos]);
 
   const visibleTodos = useMemo(() => {
     if (status === "active") return todos.filter((t) => !t.completed);

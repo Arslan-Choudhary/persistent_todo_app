@@ -1,10 +1,12 @@
+Assessment answers: see [ANSWERS.md](./ANSWERS.md).
+
 # Persistent Tasks — Dev Weekends Assessment
 
 A full-stack todo app built with **Next.js** (App Router) and **MongoDB**. Tasks persist across server restarts: create items, stop the app, start it again, and your data is still there.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 18.18 or newer
+- [Node.js](https://nodejs.org/) 22.20.0
 - [MongoDB](https://www.mongodb.com/try/download/community) running locally **or** a [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) connection string
 
 ## Quick start (fresh machine)
@@ -30,6 +32,14 @@ MONGODB_URI=mongodb://127.0.0.1:27017/devweekends_todos
 
 Replace `MONGODB_URI` in `.env.local` with your Atlas connection string.
 
+### SEO base URL (recommended)
+
+For correct canonical/robots/sitemap URLs in production, set:
+
+```
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
 ## Production build
 
 ```bash
@@ -42,6 +52,7 @@ npm start
 - **CRUD** — create, read, update, delete todos
 - **Persistence** — MongoDB via Mongoose
 - **Beyond plain CRUD** — priority levels, due dates with overdue highlighting, status filters (All / Active / Completed), and text search
+- **Technical SEO** — metadata, canonical tags, OpenGraph/Twitter cards, `robots.txt`, `sitemap.xml`, and `manifest.webmanifest`
 
 ## API
 
@@ -62,5 +73,3 @@ src/
   lib/               # DB connection, validation, helpers
   models/            # Mongoose schema
 ```
-
-Assessment answers: see [ANSWERS.md](./ANSWERS.md).

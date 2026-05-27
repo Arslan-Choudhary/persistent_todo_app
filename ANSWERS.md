@@ -2,7 +2,7 @@
 
 ## 1. How to run
 
-**Prerequisites:** Node.js 18.18+, MongoDB (local or Atlas).
+**Prerequisites:** Node.js 22.20.0, MongoDB (local or Atlas).
 
 ```bash
 cd persistent_todo_app
@@ -70,7 +70,7 @@ To verify persistence: add tasks → stop the dev server (`Ctrl+C`) → run `npm
 
 | Tool | What I asked | What it gave me | What I changed |
 |------|----------------|-----------------|----------------|
-| **Cursor (Claude)** | Scaffold Next.js todo app with MongoDB CRUD, API validation, and assessment docs | Project structure, Mongoose model, API routes, React components, README/ANSWERS drafts | Tightened `isValidObjectId` to avoid false positives on arbitrary strings; moved `MONGODB_URI` check inside `connectDB()` so `next build` does not fail without env; chose overdue + priority as the defended “beyond CRUD” feature set |
+| **Cursor** | Scaffold Next.js todo app with MongoDB CRUD, API validation, and assessment docs | Project structure, Mongoose model, API routes, React components, README/ANSWERS drafts | Tightened `isValidObjectId` to avoid false positives on arbitrary strings; moved `MONGODB_URI` check inside `connectDB()` so `next build` does not fail without env; chose overdue + priority as the defended “beyond CRUD” feature set |
 | **Cursor** | Explain Next.js 16 `params` in route handlers | Note that `params` is a Promise in App Router | Used `const { id } = await params` in `[id]/route.js` |
 | **MongoDB docs** (manual) | Connection pooling in Next.js | Official cached `mongoose` singleton pattern | Adapted to this repo’s `src/lib/mongodb.js` |
 
