@@ -36,7 +36,12 @@ export default function TodoItem({ todo, onUpdate, onDelete, disabled }) {
   }
 
   async function toggleCompleted() {
-    await onUpdate(todo._id, { completed: !todo.completed });
+    setError("");
+    try {
+      await onUpdate(todo._id, { completed: !todo.completed });
+    } catch (err) {
+      setError(err.message || "Failed to update todo");
+    }
   }
 
   if (isEditing) {
@@ -169,6 +174,12 @@ export default function TodoItem({ todo, onUpdate, onDelete, disabled }) {
               }`}
             >
               Due {formatDueDate(todo.dueDate)}
+            </p>
+          ) : null}
+
+          {error ? (
+            <p className="mt-2 text-sm text-rose-600" role="alert">
+              {error}
             </p>
           ) : null}
         </div>

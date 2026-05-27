@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import FilterBar from "./FilterBar";
 import TodoForm from "./TodoForm";
 import TodoItem from "./TodoItem";
@@ -26,8 +32,25 @@ export default function TodoApp() {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [pendingIds, setPendingIds] = useState(() => new Set());
   const [dbError, setDbError] = useState("");
+
+  const markPending = useCallback((id) => {
+    setPendingIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearPending = useCallback((id) => {
+    setPendingIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
 
   const loadTodos = useCallback(async () => {
     setLoading(true);
@@ -70,40 +93,57 @@ export default function TodoApp() {
   }, [todos, status]);
 
   async function createTodo(payload) {
-    setBusy(true);
     try {
       const data = await request("/api/todos", {
         method: "POST",
         body: JSON.stringify(payload),
       });
       setTodos((prev) => [data.todo, ...prev]);
-    } finally {
-      setBusy(false);
+    } catch (error) {
+      // Surface to the form so it can show a message.
+      throw error;
     }
   }
 
   async function updateTodo(id, updates) {
-    setBusy(true);
+    markPending(id);
+
+    let previousTodo;
+    setTodos((prev) =>
+      prev.map((todo) => {
+        if (todo._id !== id) return todo;
+        previousTodo = todo;
+        return { ...todo, ...updates };
+      }),
+    );
+
     try {
       const data = await request(`/api/todos/${id}`, {
         method: "PATCH",
         body: JSON.stringify(updates),
       });
-      setTodos((prev) =>
-        prev.map((todo) => (todo._id === id ? data.todo : todo)),
-      );
+      setTodos((prev) => prev.map((todo) => (todo._id === id ? data.todo : todo)));
+    } catch (error) {
+      if (previousTodo) {
+        setTodos((prev) =>
+          prev.map((todo) => (todo._id === id ? previousTodo : todo)),
+        );
+      }
+      throw error;
     } finally {
-      setBusy(false);
+      clearPending(id);
     }
   }
 
   async function deleteTodo(id) {
-    setBusy(true);
+    markPending(id);
     try {
       await request(`/api/todos/${id}`, { method: "DELETE" });
       setTodos((prev) => prev.filter((todo) => todo._id !== id));
+    } catch (error) {
+      throw error;
     } finally {
-      setBusy(false);
+      clearPending(id);
     }
   }
 
@@ -132,7 +172,7 @@ export default function TodoApp() {
         </div>
       ) : null}
 
-      <TodoForm onCreate={createTodo} disabled={busy || !!dbError} />
+      <TodoForm onCreate={createTodo} disabled={!!dbError} />
 
       <FilterBar
         status={status}
@@ -161,7 +201,7 @@ export default function TodoApp() {
                 todo={todo}
                 onUpdate={updateTodo}
                 onDelete={deleteTodo}
-                disabled={busy}
+                disabled={pendingIds.has(todo._id)}
               />
             ))}
           </ul>
