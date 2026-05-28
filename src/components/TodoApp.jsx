@@ -32,6 +32,8 @@ export default function TodoApp() {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const [loading, setLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [pendingIds, setPendingIds] = useState(() => new Set());
   const [dbError, setDbError] = useState("");
 
@@ -53,7 +55,11 @@ export default function TodoApp() {
   }, []);
 
   const loadTodos = useCallback(async () => {
-    setLoading(true);
+    if (!hasLoadedOnce) {
+      setLoading(true);
+    } else {
+      setIsSearching(true);
+    }
     setDbError("");
 
     const params = new URLSearchParams({ status: "all" });
@@ -67,8 +73,10 @@ export default function TodoApp() {
       setTodos([]);
     } finally {
       setLoading(false);
+      setIsSearching(false);
+      setHasLoadedOnce(true);
     }
-  }, [deferredSearch]);
+  }, [deferredSearch, hasLoadedOnce]);
 
   useEffect(() => {
     const timer = setTimeout(loadTodos, deferredSearch ? 250 : 0);
@@ -181,6 +189,12 @@ export default function TodoApp() {
         onSearchChange={setSearch}
         counts={counts}
       />
+
+      {isSearching ? (
+        <p className="text-xs text-slate-500" aria-live="polite">
+          Updating results...
+        </p>
+      ) : null}
 
       <section aria-live="polite">
         {loading ? (
