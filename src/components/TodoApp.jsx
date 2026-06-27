@@ -70,6 +70,7 @@ export default function TodoApp() {
       setTodos(data.todos);
     } catch (error) {
       setDbError(error.message);
+      console.error("Error loading todos:", error);
       setTodos([]);
     } finally {
       setLoading(false);
